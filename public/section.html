@@ -5,11 +5,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Criar Nova Seção</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Comfortaa">
+    <link rel="stylesheet" href="./CSS/index.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
 </head>
 
-<body>
+<body class="body">
     <header>
         <!-- Cabeçalho da página de criação de seções -->
     </header>
@@ -17,24 +19,37 @@
     <main>
         <div class="container">
             <h1>Criar Nova Seção</h1>
-                <div class="mb-3">
-                    <label  class="form-label">Título da Seção:</label>
-                    <input type="text" class="form-control" id="section-title" placeholder="Digite o título da seção"
-                        >
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Conteúdo da Seção:</label>
-                    <textarea class="form-control" id="section-content" rows="4"
-                        placeholder="Digite o conteúdo da seção" ></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="section-image" class="form-label">Imagem da Seção:</label>
-                    <input type="file" class="form-control" id="section-image" accept="image/*" >
-                </div>
-                <div class="d-flex justify-content-between">
-                    <button class="btn btn-primary" onclick="cadastrar()">Criar Seção</button>
-                    <a href="index.html" class="btn btn-secondary">Voltar ao Site</a>
-                </div>
+            <input type="hidden" id="section-id" value="">
+            <div class="mb-3">
+                <label class="form-label">Título da Seção:</label>
+                <input type="text" class="form-control" id="section-title" placeholder="Digite o título da seção">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Conteúdo anterior a imagem:</label>
+                <textarea class="form-control" id="section-content-before" rows="4"
+                    placeholder="Digite o conteúdo anterior a imagem na seção"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="section-image" class="form-label">Imagem da Seção:</label>
+                <input type="file" class="form-control" id="section-image" accept="image/*">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Conteúdo posterior a imagem:</label>
+                <textarea class="form-control" id="section-content-after" rows="4"
+                    placeholder="Digite o conteúdo posterior a imagem na seção"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Nome do Link:</label>
+                <input type="text" class="form-control" id="section-name-link" placeholder="Digite o nome do link">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Link:</label>
+                <input type="text" class="form-control" id="section-link" placeholder="insira o link externo">
+            </div>
+            <div class="d-flex justify-content-between">
+                <button class="btn btn-primary" onclick="cadastrar()">Criar Seção</button>
+                <a href="index.html" class="btn btn-secondary">Voltar ao Site</a>
+            </div>
         </div>
         <div id="sections-container" class="py-4 container-fluid text-center">
         </div>
