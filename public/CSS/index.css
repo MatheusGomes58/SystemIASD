@@ -1,8 +1,8 @@
 .body {
     font-family: "Comfortaa", sans-serif;
     background-color: #222222;
-    font-weight: 700;
     color: white;
+    overflow-x: hidden;
 }
 
 .header {
@@ -12,6 +12,7 @@
     align-items: center;
     justify-content: center;
     max-height: 300px;
+    max-width: 100vw;
 }
 
 
@@ -31,14 +32,28 @@
     left: 50%;
     transform: translate(-50%, -50%);
     color: white;
-    font-size: 75px;
+    font-size: 5vw;
     white-space: nowrap;
 }
 
-header {
-    margin-bottom: -25px;
+mat {
+    margin-bottom: -2%;
+    margin-top: 0;
 }
 
-main {
-    margin-top: 0;
+.footer {
+    background-color: black;
+    padding: 20px;
+}
+
+.footer-columns {
+    display: flex;
+    justify-content: space-between;
+}
+
+.footer-column {
+    width: 48%;
+    align-items: center;
+    justify-content: center;
+    display: flex;
 }
