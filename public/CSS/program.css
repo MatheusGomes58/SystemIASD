@@ -34,12 +34,16 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    
 }
 
 mat {
     margin-bottom: -2%;
     margin-top: 0;
+}
+
+textarea {
+    resize: vertical;
+    overflow: hidden;
 }
 
 .footer {
