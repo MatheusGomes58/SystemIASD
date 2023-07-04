@@ -3,6 +3,9 @@
     background-color: #222222;
     color: white;
     overflow-x: hidden;
+    font-size: 18px;
+    justify-content: center;
+    align-items: center;
 }
 
 .header {
@@ -29,7 +32,7 @@
 .header-title {
     position: absolute;
     color: white;
-    font-size:300%;
+    font-size: 300%;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -41,9 +44,23 @@ mat {
     margin-top: 0;
 }
 
+
 textarea {
     resize: vertical;
     overflow: hidden;
+}
+
+span {
+    display: flex;
+    flex-wrap: wrap;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .footer {

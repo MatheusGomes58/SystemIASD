@@ -12,15 +12,43 @@
 </head>
 
 <body class="body text-center">
-    <h2>Categorias</h2>
+    <h2 id="cat">Categorias</h2>
+    <input type="text" id="catID" hidden>
 
     <div id="categorias" class="row" style="margin-left: 5%; margin-right: 5%;">
         <div class="col-12">
             <div class="input-group">
-                <span class="input-group-text" style="background-color: #222222; color: white;">Nova Categoria:</span>
+                <span class="input-group-text" style="background-color: #222222; color: white;">Categoria:</span>
                 <input type="text" id="categoriaInput" class="form-control"
                     style="background-color: #222222; color: white;">
-                <span class="input-group-text" style="background-color: #222222; color: white;">Posição da Seção:</span>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="input-group">
+                <span class="input-group-text" style="background-color: #222222; color: white;">Dia:</span>
+                <select id="dayOfWeek" class="form-control" style="background-color: #222222; color: white;">
+                    <option value="">Selecione...</option>
+                    <option value="0">Domingo</option>
+                    <option value="1">Segunda</option>
+                    <option value="2">Terça</option>
+                    <option value="3">Quarta</option>
+                    <option value="4">Quinta</option>
+                    <option value="5">Sexta</option>
+                    <option value="6">Sábado</option>
+                    <option value="7">Todos</option>
+                </select>
+                <span class="input-group-text" style="background-color: #222222; color: white;">Visibilidade:</span>
+                <span class="input-group-text" style="background-color: #222222; color: white;">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="switchCategoria"
+                            style="display: flex; justify-content: center; align-items: center;">
+                    </div>
+                </span>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="input-group">
+                <span class="input-group-text" style="background-color: #222222; color: white;">Sequência:</span>
                 <input type="number" id="categoriaOrder" class="form-control"
                     style="background-color: #222222; color: white;">
                 <button id="criarCategoriaBtn" class="btn btn-outline-secondary" style="color: white;">Inserir</button>
@@ -28,31 +56,39 @@
         </div>
     </div>
 
-    <div id="categorias" class="row" style="margin-top: 2%; margin-bottom: 2%; margin-left: 5%; margin-right: 5%;">
-        <ul id="categoriasList" class="row text-center"></ul>
-    </div>
-
-    <h2>Cronograma</h2>
-    <div id="cronograma" class="row text-center">
+    <h2 id="cronograma">Cronograma</h2>
+    <input type="text" id="idCron" hidden>
+    <div class="row text-center">
         <div class="col-12">
             <div id="categorias" style="margin-left: 5%; margin-right: 5%;">
                 <div class="input-group">
                     <span class="input-group-text" style="background-color: #222222; color: white;">Categoria:</span>
                     <select id="categoriaSelect" class="form-control"
                         style="background-color: #222222; color: white;"></select>
-                    <span class="input-group-text" style="background-color: #222222; color: white;">Horario:</span>
-                    <input type="time" id="horarioInput" class="form-control"
-                        style="background-color: #222222; color: white;">
-
                 </div>
             </div>
         </div>
         <div class="col-12">
             <div id="categorias" style="margin-left: 5%; margin-right: 5%;">
                 <div class="input-group">
+                    <span class="input-group-text" style="background-color: #222222; color: white;">Horario:</span>
+                    <input type="time" id="horarioInput" class="form-control"
+                        style="background-color: #222222; color: white;">
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div style="margin-left: 5%; margin-right: 5%;">
+                <div class="input-group">
                     <span class="input-group-text" style="background-color: #222222; color: white;">Ação:</span>
                     <textarea id="acaoInput" class="form-control"
                         style="background-color: #222222; color: white;"></textarea>
+                </div>
+            </div>
+        </div>
+        <div class="col-12">
+            <div style="margin-left: 5%; margin-right: 5%;">
+                <div class="input-group">
                     <span class="input-group-text" style="background-color: #222222; color: white;">Responsável:</span>
                     <input type="text" id="responsavelInput" class="form-control"
                         style="background-color: #222222; color: white;">
@@ -60,18 +96,19 @@
             </div>
         </div>
         <div class="col-12">
-            <div id="categorias" style="margin-left: 5%; margin-right: 5%;">
+            <div style="margin-left: 5%; margin-right: 5%;">
                 <div class="input-group">
-                    <span class="input-group-text" style="background-color: #222222; color: white;">Deseja inserir arquivo ou
-                        link?</span>
+                    <span class="input-group-text" style="background-color: #222222; color: white;">File or Link?</span>
                     <select id="seletor" onchange="showInput()" class="form-control"
                         style="background-color: #222222; color: white;">
                         <option value="">Selecione...</option>
                         <option value="A">Link Externo</option>
                         <option value="B">Arquivo</option>
                     </select>
-                    <input type="text" id="link" class="form-control" style="display: none; background-color: #222222; color: white;">
-                    <input type="file" id="file" class="form-control" style="display: none; background-color: #222222; color: white;">
+                    <input type="text" id="link" class="form-control"
+                        style="display: none; background-color: #222222; color: white;">
+                    <input type="file" id="file" class="form-control"
+                        style="display: none; background-color: #222222; color: white;">
                 </div>
             </div>
         </div>
@@ -82,6 +119,10 @@
         </div>
     </div>
 
+
+    <div id="categorias" class="row" style="margin-top: 2%; margin-bottom: 2%; margin-left: 5%; margin-right: 5%;">
+        <ul id="categoriasList" class="row text-center"></ul>
+    </div>
 
     <section id="categoriaCronogramaSection" class="row text-center" center>
         <div id="cronogramaList" class="row text-center"></div>

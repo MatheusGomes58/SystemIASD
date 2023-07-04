@@ -8,6 +8,17 @@ const firebaseConfig = {
     appId: "1:1024933571418:web:abc3e9e106b8385966a163"
 };
 
+var diasDaSemana = [
+    "Domingo",
+    "Segunda-feira",
+    "Terça-feira",
+    "Quarta-feira",
+    "Quinta-feira",
+    "Sexta-feira",
+    "Sábado",
+    "Todos"
+];
+
 firebase.initializeApp(firebaseConfig);
 // Referência para o Firestore
 var db = firebase.firestore();
@@ -19,156 +30,302 @@ var categoriasRef = db.collection('categorias');
 // Referência para a coleção de cronogramas
 var cronogramaRef = db.collection('cronograma');
 
-// Elementos do DOM
+// Elementos do DOM categoria
+var categoriaIDALL = document.getElementById('catID');
 var categoriaInput = document.getElementById('categoriaInput');
+var categoriaDay = document.getElementById('dayOfWeek');
+var categoriaSatus = document.getElementById('switchCategoria');
 var categoriaSequence = document.getElementById('categoriaOrder');
 var categoriaList = document.getElementById('categoriasList');
 var categoriaSelect = document.getElementById('categoriaSelect');
+
+// Elementos do DOM Cronograma
+var idCronInput = document.getElementById('idCron');
 var horarioInput = document.getElementById('horarioInput');
 var acaoInput = document.getElementById('acaoInput');
 var responsavelInput = document.getElementById('responsavelInput');
 var cronogramaList = document.getElementById('cronogramaList');
-var fileInput = document.getElementById("file");
+var selectedOption = document.getElementById("seletor");
 var textInput = document.getElementById("link");
+var fileInput = document.getElementById("file");
 
 // Função para criar uma categoria
 function criarCategoria() {
     var nome = categoriaInput.value;
     var posicao = categoriaSequence.value;
+    var Day = categoriaDay.value;
+    var Satus = categoriaSatus.checked;
 
-    categoriasRef.add({
-        nome: nome,
-        posicao: posicao
-    })
-        .then(function () {
-            categoriaInput.value = '';
-            categoriaSequence.value = '';
-            buscarCategoriasECronograma()
+    // Verificar se a categoria já existe
+    categoriasRef.where("nome", "==", nome).get()
+        .then(function (querySnapshot) {
+            if (querySnapshot.empty) {
+                // Criar nova categoria
+                categoriasRef.add({
+                    nome: nome,
+                    posicao: posicao,
+                    DIA: Day,
+                    STATE: Satus
+                })
+                .then(function () {
+                    categoriaIDALL.value = "";
+                    categoriaInput.value = "";
+                    categoriaSequence.value = "";
+                    categoriaDay.value = "";
+                    categoriaSatus.checked = false;
+                    buscarCategoriasECronograma();
+                })
+                .catch(function (error) {
+                    console.error('Erro ao criar categoria: ', error);
+                });
+            } else {
+                // Atualizar categoria existente
+                querySnapshot.forEach(function (doc) {
+                    categoriasRef.doc(doc.id).update({
+                        nome: nome,
+                        posicao: posicao,
+                        DIA: Day,
+                        STATE: Satus
+                    })
+                    .then(function () {
+                        categoriaIDALL.value = "";
+                        categoriaInput.value = "";
+                        categoriaSequence.value = "";
+                        categoriaDay.value = "";
+                        categoriaSatus.checked = false;
+                        buscarCategoriasECronograma();
+                    })
+                    .catch(function (error) {
+                        console.error('Erro ao atualizar categoria: ', error);
+                    });
+                });
+            }
         })
         .catch(function (error) {
-            console.error('Erro ao criar categoria: ', error);
+            console.error('Erro ao buscar categoria: ', error);
         });
 }
 
-// Função para atualizar uma categoria
-function atualizarCategoria(key, nome) {
-    categoriasRef.doc(key).update({
-        nome: nome
-    }).then(buscarCategoriasECronograma())
-        .catch(function (error) {
-            console.error('Erro ao atualizar categoria: ', error);
-        });
-}
 
 function criarCronograma() {
+    var cronogramaID = idCronInput.value;
     var categoriaId = categoriaSelect.value;
+    var link = selectedOption.value;
     var horario = horarioInput.value;
     var acao = acaoInput.value;
     var responsavel = responsavelInput.value;
     var fileInputs = fileInput;
     var textInputs = textInput.value;
 
+    if (!cronogramaID) {
+        // Verificar se há uma imagem selecionada
+        var file = fileInput.files[0];
+        if (file) {
+            // Criar uma referência para o arquivo no Firebase Storage
+            var storageRef = firebase.storage().ref().child('imagens/' + file.name);
 
-
-    // Verificar se há uma imagem selecionada
-    var file = fileInput.files[0];
-    if (file) {
-        // Criar uma referência para o arquivo no Firebase Storage
-        var storageRef = firebase.storage().ref().child('imagens/' + file.name);
-
-        // Fazer upload do arquivo para o Firebase Storage
-        storageRef.put(file)
-            .then(function (snapshot) {
-                console.log('Arquivo enviado com sucesso!');
-                return snapshot.ref.getDownloadURL();
-            })
-            .then(function (downloadURL) {
-                console.log('URL da imagem: ', downloadURL);
-                // Salvar o URL da imagem no Firestore
-                cronogramaRef.add({
-                    categoria: categoriaId,
-                    horario: horario,
-                    acao: acao,
-                    responsavel: responsavel,
-                    imagemURL: downloadURL
+            // Fazer upload do arquivo para o Firebase Storage
+            storageRef.put(file)
+                .then(function (snapshot) {
+                    console.log('Arquivo enviado com sucesso!');
+                    return snapshot.ref.getDownloadURL();
                 })
+                .then(function (downloadURL) {
+                    console.log('URL da imagem: ', downloadURL);
+                    // Salvar o URL da imagem no Firestore
+                    cronogramaRef.add({
+                        categoria: categoriaId,
+                        horario: horario,
+                        acao: acao,
+                        responsavel: responsavel,
+                        imagemURL: downloadURL,
+                        linkExterno: textInputs
+                    })
+                        .then(function (docRef) {
+                            console.log('Cronograma criado com ID: ', docRef.id);
+                        })
+                        .catch(function (error) {
+                            console.error('Erro ao criar cronograma: ', error);
+                        });
+                })
+                .catch(function (error) {
+                    console.error('Erro ao enviar o arquivo: ', error);
+                });
+        } else if (textInputs != "") {
+            // Não há imagem selecionada, salvar apenas os outros dados no Firestore
+            cronogramaRef.add({
+                categoria: categoriaId,
+                horario: horario,
+                acao: acao,
+                responsavel: responsavel,
+                imagemURL: "",
+                linkExterno: textInputs
+            })
                 .then(function (docRef) {
                     console.log('Cronograma criado com ID: ', docRef.id);
                 })
                 .catch(function (error) {
                     console.error('Erro ao criar cronograma: ', error);
                 });
+        } else {
+            cronogramaRef.add({
+                categoria: categoriaId,
+                horario: horario,
+                acao: acao,
+                responsavel: responsavel,
+                imagemURL: "",
+                linkExterno: ""
             })
-            .catch(function (error) {
-                console.error('Erro ao enviar o arquivo: ', error);
-            });
-    } else if(textInputs != "") {
-        // Não há imagem selecionada, salvar apenas os outros dados no Firestore
-        cronogramaRef.add({
-            categoria: categoriaId,
-            horario: horario,
-            acao: acao,
-            responsavel: responsavel,
-            linkExterno: textInputs
-        })
-        .then(function (docRef) {
-            console.log('Cronograma criado com ID: ', docRef.id);
-        })
-        .catch(function (error) {
-            console.error('Erro ao criar cronograma: ', error);
-        });
-    } else{
-        cronogramaRef.add({
-            categoria: categoriaId,
-            horario: horario,
-            acao: acao,
-            responsavel: responsavel
-        })
-        .then(function (docRef) {
-            console.log('Cronograma criado com ID: ', docRef.id);
-        })
-        .catch(function (error) {
-            console.error('Erro ao criar cronograma: ', error);
-        });
+                .then(function (docRef) {
+                    console.log('Cronograma criado com ID: ', docRef.id);
+                })
+                .catch(function (error) {
+                    console.error('Erro ao criar cronograma: ', error);
+                });
+        }
+    } else {
+        if (link == 'A') {
+            cronogramaRef.doc(cronogramaID).update({
+                categoria: categoriaId,
+                horario: horario,
+                acao: acao,
+                responsavel: responsavel,
+                imagemURL: "",
+                linkExterno: textInputs
+            })
+                .then(function () {
+                    console.log('Cronograma Atualizado');
+                })
+                .catch(function (error) {
+                    console.error('Erro ao criar cronograma: ', error);
+                });
+        } else if (link == 'B') {
+            //APAGA O ARQUIVO DO LINK E COLOCA OUTRO NO LUGAR
+        } else if (link == '') {
+            if (textInputs.indexOf("firebasestorage") !== -1) {
+                cronogramaRef.doc(cronogramaID).update({
+                    categoria: categoriaId,
+                    horario: horario,
+                    acao: acao,
+                    responsavel: responsavel,
+                    imagemURL: "",
+                    linkExterno: ""
+                })
+                    .then(function (docRef) {
+                        // Criar uma referência para o arquivo no Firebase Storage
+                        var storageRef = firebase.storage().refFromURL(textInputs);
+
+                        // Excluir o arquivo do Firebase Storage
+                        storageRef.delete()
+                            .then(function () {
+                                console.log("Arquivo excluído do Firebase Storage com sucesso!");
+                            })
+                            .catch(function (error) {
+                                console.error("Erro ao excluir arquivo do Firebase Storage: ", error);
+                            });
+                    })
+                    .catch(function (error) {
+                        console.error('Erro ao criar cronograma: ', error);
+                    });
+            } else {
+                cronogramaRef.doc(cronogramaID).update({
+                    categoria: categoriaId,
+                    horario: horario,
+                    acao: acao,
+                    responsavel: responsavel,
+                    imagemURL: "",
+                    linkExterno: ""
+                })
+            }
+        }
     }
+
+    categoriaSelect.value = "";
+    horarioInput.value = "";
+    acaoInput.value = "";
+    responsavelInput.value = "";
+    fileInput.value = "";
+    textInput.value = "";
+    selectedOption.value = "";
 
     buscarCategoriasECronograma();
 }
 
 // Função para atualizar um cronograma
-function atualizarCronograma(key, categoriaId, horario, acao, responsavel) {
-    cronogramaRef.doc(key).update({
-        categoria: categoriaId,
-        horario: horario,
-        acao: acao,
-        responsavel: responsavel
-    }).then(buscarCategoriasECronograma())
-        .catch(function (error) {
-            console.error('Erro ao atualizar cronograma: ', error);
-        });
+function atualizarCronograma(key, categoriaId, horario, acao, responsavel, imagemURL, linkExterno) {
+
+    const formSection = document.getElementById('cronograma');
+    formSection.scrollIntoView({ behavior: 'smooth' });
+    idCronInput.value = key;
+    categoriaSelect.value = categoriaId;
+    horarioInput.value = horario;
+    acaoInput.value = acao;
+    responsavelInput.value = responsavel;
+    if (imagemURL) {
+        selectedOption.value = "A";
+        textInput.style.display = "block";
+        fileInput.style.display = "none";
+        textInput.value = imagemURL;
+    }
+    if (linkExterno) {
+        selectedOption.value = "A";
+        textInput.style.display = "block";
+        fileInput.style.display = "none";
+        textInput.value = linkExterno;
+    }
+    console.log(imagemURL)
+    console.log(linkExterno)
 }
 
-// Função para excluir um cronograma
-function excluirCronograma(key) {
-    cronogramaRef.doc(key).delete()
+function excluirCronograma(id) {
+    cronogramaRef.doc(id).get()
+        .then(function (doc) {
+            if (doc.exists) {
+                var data = doc.data();
+                var imagemURL = data.imagemURL; // Obter o URL da imagem ou link
+
+                // Excluir a categoria do Firestore
+                cronogramaRef.doc(id).delete()
+                    .then(function () {
+                        console.log("Categoria excluída com sucesso!");
+
+                        // Verificar se há um URL da imagem ou link
+                        if (imagemURL) {
+                            // Criar uma referência para o arquivo no Firebase Storage
+                            var storageRef = firebase.storage().refFromURL(imagemURL);
+
+                            // Excluir o arquivo do Firebase Storage
+                            storageRef.delete()
+                                .then(function () {
+                                    console.log("Arquivo excluído do Firebase Storage com sucesso!");
+                                })
+                                .catch(function (error) {
+                                    console.error("Erro ao excluir arquivo do Firebase Storage: ", error);
+                                });
+                        }
+                    })
+                    .catch(function (error) {
+                        console.error("Erro ao excluir categoria: ", error);
+                    });
+            } else {
+                console.log("Categoria não encontrada.");
+            }
+        })
         .catch(function (error) {
-            console.error('Erro ao excluir cronograma: ', error);
+            console.error("Erro ao obter categoria: ", error);
         });
-    buscarCategoriasECronograma()
+
+    buscarCategoriasECronograma();
 }
 
 function showInput() {
-    var selectedOption = document.getElementById("seletor").value;
-    var textInput = document.getElementById("link");
-    var fileInput = document.getElementById("file");
-
-    if (selectedOption === "A") {
+    if (selectedOption.value === "A") {
         textInput.style.display = "block";
         fileInput.style.display = "none";
-    } else if (selectedOption === "B") {
+    } else if (selectedOption.value === "B") {
         textInput.style.display = "none";
         fileInput.style.display = "block";
-    }else{
+    } else {
         textInput.style.display = "none";
         fileInput.style.display = "none";
     }
@@ -177,57 +334,52 @@ function showInput() {
 
 
 // Função para renderizar as categorias e os cronogramas juntos
-function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot) {
+function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot, todasCategorias) {
 
     // Converter a coleção de categorias em um array
-    const categoriasArray = categoriasSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const categoriasArray = categoriasSnapshot
+    const CategoriasAll = [];
+    todasCategorias.forEach(function (categoriaDoc) {
+        CategoriasAll.push(categoriaDoc.data());
+    });
 
     // Ordenar o array de categorias pelo campo 'posicao' em ordem crescente
     categoriasArray.sort((a, b) => a.posicao - b.posicao);
+    CategoriasAll.sort((a, b) => a.posicao - b.posicao);
 
     if (document.title == "LITURGIA EDITAVEL") {
         // Limpar a lista de categorias existentes
         categoriaList.innerHTML = '';
 
-        categoriasArray.forEach(categoriaData => {
+        var categoriaTable = document.createElement('table');
+        categoriaTable.className = "table table-dark table-hover";
+        categoriaTable.style = "margin-left: 5%; margin-right: 5%; max-width: 100%; margin: 0 auto; ";
+        var categoriaBody = document.createElement('tbody');
+
+        CategoriasAll.forEach(categoriaData => {
+            var categoriaID = categoriaData.id;
             var categoria = categoriaData.nome;
             var posicao = categoriaData.posicao;
+            var dia = categoriaData.DIA;
+            var STATE = categoriaData.STATE;
 
-            var categoriaItems = document.createElement('div');
-            categoriaItems.className = "input-group";
-            categoriaItems.style= "margin-top: 2%;"
+            var categoriaItemData = document.createElement('tr');
 
-            var spanCategoria = document.createElement('span');
-            spanCategoria.className = "input-group-text";
-            spanCategoria.style = "background-color: #222222; color: white;"
-            spanCategoria.innerHTML = "Categoria:"
-            categoriaItems.appendChild(spanCategoria)
+            var categoriaItem = document.createElement('td');
+            categoriaItem.innerHTML = categoria;
+            categoriaItemData.appendChild(categoriaItem);
 
-            var categoriaItem = document.createElement('input');
-            categoriaItem.type = 'text';
-            categoriaItem.id = categoriaData.id + "Categoria";
-            categoriaItem.className = "form-control";
-            categoriaItem.style = "background-color: #222222; color: white;"
-            categoriaItem.value = categoria;
-            categoriaItems.appendChild(categoriaItem)
-            categoriaList.appendChild(categoriaItems);
+            var posicaoItem = document.createElement('td');
+            posicaoItem.innerHTML = posicao;
+            categoriaItemData.appendChild(posicaoItem);
 
-            var categoriaItems = document.createElement('div');
-            categoriaItems.className = "input-group";
+            var posicaoItem = document.createElement('td');
+            posicaoItem.innerHTML = diasDaSemana[dia];
+            categoriaItemData.appendChild(posicaoItem);
 
-            var spanCategoria = document.createElement('span');
-            spanCategoria.className = "input-group-text";
-            spanCategoria.style = "background-color: #222222; color: white;"
-            spanCategoria.innerHTML = "Posição da Seção:"
-            categoriaItems.appendChild(spanCategoria)
-
-            var categoriaItem = document.createElement('input');
-            categoriaItem.type = 'number';
-            categoriaItem.id = categoriaData.id + "Posicao";
-            categoriaItem.className = "form-control";
-            categoriaItem.style = "background-color: #222222; color: white;"
-            categoriaItem.value = posicao;
-            categoriaItems.appendChild(categoriaItem)
+            var posicaoItem = document.createElement('td');
+            posicaoItem.innerHTML = STATE;
+            categoriaItemData.appendChild(posicaoItem);
 
             var excluirButton = document.createElement('button');
             excluirButton.innerText = 'Excluir';
@@ -235,23 +387,34 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot)
             excluirButton.onclick = function () {
                 excluirCategoria(categoriaData.id);
             };
-            categoriaItems.appendChild(excluirButton);
 
             var editarButton = document.createElement('button');
             editarButton.innerText = 'Editar';
             editarButton.className = "btn btn-outline-secondary";
             editarButton.onclick = function () {
-                editarCategoria(categoriaData.id);
+                var newCatId = categoriaID;
+                var newCat = categoria;
+                var newPosition = posicao;
+                var newDay = dia;
+                var newState = STATE;
+
+                editarCategoria(newCatId, newCat, newPosition, newDay, newState);
             };
-            categoriaItems.appendChild(editarButton);
 
-            categoriaList.appendChild(categoriaItems);
 
-            var categoriaOption = document.createElement('option');
-            categoriaOption.value = categoria;
-            categoriaOption.innerText = categoria;
-            categoriaSelect.appendChild(categoriaOption);
+            var editarButtom = document.createElement('td');
+            var excluirButtom = document.createElement('td');
+            excluirButtom.appendChild(excluirButton);
+            editarButtom.appendChild(editarButton);
+            categoriaItemData.appendChild(editarButtom);
+            categoriaItemData.appendChild(excluirButtom);
+
+            categoriaBody.appendChild(categoriaItemData);
         });
+
+        categoriaTable.appendChild(categoriaBody);
+        categoriaList.appendChild(categoriaTable);
+
 
         // Popula a lista de categorias no formulário de criação e edição de cronogramas
         categoriaSelect.innerHTML = '';
@@ -280,6 +443,10 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot)
         categoriaTitulo.innerText = categoriaNome;
         categoriaTitulo.style.textAlign = 'center';
         cronogramaList.appendChild(categoriaTitulo);
+        var cronogramaTable = document.createElement('table');
+        cronogramaTable.className = "table table-dark table-hover";
+        var cronogramaBody = document.createElement('tbody');
+        cronogramaTable.style = "margin-left: 5%; margin-right: 5%; max-width: 100%; margin: 0 auto; ";
 
         // Filtrar os cronogramas pertencentes à categoria atual
         var categoriaCronogramas = cronogramaSnapshot.docs.filter(function (cronogramaDoc) {
@@ -296,50 +463,83 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot)
             var horario = cronogramaDoc.data().horario;
             var acao = cronogramaDoc.data().acao;
             var responsavel = cronogramaDoc.data().responsavel;
+            var linkExterno = cronogramaDoc.data().linkExterno;
+            var imagemURL = cronogramaDoc.data().imagemURL;
 
-            var cronogramaItem = document.createElement('div');
-            cronogramaItem.className = "input-group col-10";
+            var cronogramaItem = document.createElement('tr');
 
-            if (horario != "") {
-                var horarioInput = document.createElement('input');
-                horarioInput.className = "form-control";
-                horarioInput.style = "background-color: #222222; color: white;"
-                horarioInput.type = 'time';
-                horarioInput.value = horario;
+            if (horario) {
+                var horarioInput = document.createElement('td');
+                horarioInput.innerHTML = horario;
+                cronogramaItem.appendChild(horarioInput);
+            } else {
+                var horarioInput = document.createElement('td');
                 cronogramaItem.appendChild(horarioInput);
             }
 
-            if (acao != "") {
-                var acaoInput = document.createElement('textarea');
-                acaoInput.className = "form-control";
-                acaoInput.style = "background-color: #222222; color: white;"
-                acaoInput.value = acao;
+            if (acao) {
+                var acaoInput = document.createElement('td');
+                acaoInput.style = "width: 40%;";
+                var textoCompleto = document.createElement('pre');
+                textoCompleto.innerHTML = acao;
+                textoCompleto.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
+                acaoInput.appendChild(textoCompleto);
+                cronogramaItem.appendChild(acaoInput);
+            } else {
+                var acaoInput = document.createElement('td');
                 cronogramaItem.appendChild(acaoInput);
             }
 
-            if (responsavel != "") {
-                var responsavelInput = document.createElement('input');
-                responsavelInput.className = "form-control";
-                responsavelInput.style = "background-color: #222222; color: white;"
-                responsavelInput.type = 'text';
-                responsavelInput.value = responsavel;
+            if (responsavel) {
+                var responsavelInput = document.createElement('td');
+                responsavelInput.innerHTML = responsavel;
                 cronogramaItem.appendChild(responsavelInput);
+            } else {
+                var responsavelInput = document.createElement('td');
+                cronogramaItem.appendChild(responsavelInput);
+            }
 
+            if (linkExterno) {
+                var linkExternoButtonTd = document.createElement('td');
+                var linkExternoButton = document.createElement('button');
+                linkExternoButton.className = "btn btn-outline-secondary";
+                linkExternoButton.innerText = 'LINK';
+                linkExternoButton.onclick = function () { abrirLinkEmNovaGuia(linkExterno); };
+                linkExternoButton.value = linkExterno;
+                linkExternoButtonTd.appendChild(linkExternoButton);
+                cronogramaItem.appendChild(linkExternoButtonTd);
+            }
+
+            if (imagemURL) {
+                var imagemURLButtonTd = document.createElement('td');
+                var imagemURLButton = document.createElement('button');
+                imagemURLButton.className = "btn btn-outline-secondary";
+                imagemURLButton.innerText = 'FILE';
+                imagemURLButton.onclick = function () { abrirLinkEmNovaGuia(imagemURL); };
+                imagemURLButton.value = imagemURL;
+                imagemURLButtonTd.appendChild(imagemURLButton);
+                cronogramaItem.appendChild(imagemURLButtonTd);
+            } else if (!linkExterno) {
+                var imagemURLButtonTd = document.createElement('td');
+                cronogramaItem.appendChild(imagemURLButtonTd);
             }
 
             if (document.title == "LITURGIA EDITAVEL") {
+                var cronogramaEdit = document.createElement('td');
                 var editarButton = document.createElement('button');
                 editarButton.className = "btn btn-outline-secondary";
                 editarButton.innerText = 'Editar';
                 editarButton.onclick = function () {
                     var novaCategoriaId = categoriaNome;
-                    var novoHorario = horarioInput.value;
-                    var novaAcao = acaoInput.value;
-                    var novoResponsavel = responsavelInput.value;
+                    var novoHorario = horario;
+                    var novaAcao = acao;
+                    var novoResponsavel = responsavel;
+                    var novaimagemURL = imagemURL;
+                    var novolinkExterno = linkExterno;
 
-                    atualizarCronograma(key, novaCategoriaId, novoHorario, novaAcao, novoResponsavel);
+                    atualizarCronograma(key, novaCategoriaId, novoHorario, novaAcao, novoResponsavel, novaimagemURL, novolinkExterno);
                 };
-                cronogramaItem.appendChild(editarButton);
+                cronogramaEdit.appendChild(editarButton);
 
                 var excluirButton = document.createElement('button');
                 excluirButton.className = "btn btn-outline-secondary";
@@ -347,9 +547,10 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot)
                 excluirButton.onclick = function () {
                     excluirCronograma(key);
                 };
-                cronogramaItem.appendChild(excluirButton);
-            } 
-            cronogramaList.appendChild(cronogramaItem);
+                cronogramaEdit.appendChild(excluirButton);
+                cronogramaItem.appendChild(cronogramaEdit)
+            }
+            cronogramaBody.appendChild(cronogramaItem)
 
             if (document.title != "LITURGIA EDITAVEL") {
                 // Selecionar todos os elementos de input na tela
@@ -359,62 +560,71 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot)
                 // Percorrer cada elemento de input e definir o atributo readonly
                 inputs.forEach(input => {
                     input.readOnly = true;
-                    
+
                 });
 
                 // Percorrer cada elemento de input e definir o atributo readonly
                 inputxs.forEach(input => {
                     input.readOnly = true;
-                    input.style.height = input.scrollHeight + "px";
-                    input.style.width = "30%";
-                });
-            }else{
-                const inputxs = document.querySelectorAll('textarea');
-                // Percorrer cada elemento de input e definir o atributo readonly
-                inputxs.forEach(input => {
-                    input.style.height = (input.scrollHeight*0.95) + "px";
-                    input.style.width = "30%";
                 });
             }
         });
+        cronogramaTable.appendChild(cronogramaBody);
+        cronogramaList.appendChild(cronogramaTable);
+
     });
 }
 
-function editarCategoria(categoriaId) {
-    var novoNome = document.getElementById(categoriaId + 'Categoria').value;
-    var novoPosicao = document.getElementById(categoriaId + 'Posicao').value;
+function abrirLinkEmNovaGuia(link) {
+    window.open(link, "_blank");
+}
 
-    categoriasRef.doc(categoriaId).update({
-        nome: novoNome,
-        posicao: novoPosicao
-    })
-        .then(function () {
-            console.log('Categoria atualizada com sucesso!');
-            buscarCategoriasECronograma();
-        })
-        .catch(function (error) {
-            console.error('Erro ao atualizar categoria: ', error);
-        });
+function editarCategoria(categoriaID, categoria, posicao, dia, STATE) {
+    const formSection = document.getElementById('cat');
+    formSection.scrollIntoView({ behavior: 'smooth' });
+    categoriaIDALL.value = categoriaID;
+    categoriaInput.value = categoria;
+    categoriaDay.value = dia;
+    categoriaSatus.checked = STATE;
+    categoriaSequence.value = posicao;
 }
 
 // Função para buscar categorias e cronogramas no Firestore
 function buscarCategoriasECronograma() {
-    Promise.all([
-        categoriasRef.get(),
-        cronogramaRef.get()
-    ])
-        .then(function (results) {
-            var categoriasSnapshot = results[0];
-            var cronogramaSnapshot = results[1];
+    var diaSemana = new Date().getDay();
+    if (document.title != "LITURGIA EDITAVEL") {
+        var category = categoriasRef.where("DIA", "in", [diaSemana, 7]).where("STATE", "==", true);
+    } else {
+        var category = categoriasRef.where("STATE", "==", true);
+    }
 
-            renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot);
+    category.get()
+        .then(function (categoriasSnapshot) {
+            // Obtém todas as categorias encontradas
+            var categorias = [];
+            categoriasSnapshot.forEach(function (categoriaDoc) {
+                categorias.push(categoriaDoc.data());
+            });
+
+            return Promise.all([
+                categorias, // Passa as categorias encontradas
+                cronogramaRef.get(),
+                categoriasRef.get()
+            ]);
+        })
+        .then(function (results) {
+            var categoriasEncontradas = results[0];
+            var cronogramaSnapshot = results[1];
+            var todasCategorias = results[2];
+
+            renderizarCategoriasECronograma(categoriasEncontradas, cronogramaSnapshot, todasCategorias);
         })
         .catch(function (error) {
             console.error('Erro ao obter dados do Firestore: ', error);
         });
 }
 
-function excluirCategoria(id) {
+function excluirCategoria(id,) {
     categoriasRef.doc(id).delete()
         .catch(function (error) {
             console.error("Erro ao excluir categoria: ", error);
