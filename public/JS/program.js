@@ -63,30 +63,10 @@ function criarCategoria() {
                 // Criar nova categoria
                 categoriasRef.add({
                     nome: nome,
-                    posicao: posicao,
-                    DIA: Day,
+                    posicao: parseInt(posicao),
+                    DIA: parseInt(Day),
                     STATE: Satus
                 })
-                .then(function () {
-                    categoriaIDALL.value = "";
-                    categoriaInput.value = "";
-                    categoriaSequence.value = "";
-                    categoriaDay.value = "";
-                    categoriaSatus.checked = false;
-                    buscarCategoriasECronograma();
-                })
-                .catch(function (error) {
-                    console.error('Erro ao criar categoria: ', error);
-                });
-            } else {
-                // Atualizar categoria existente
-                querySnapshot.forEach(function (doc) {
-                    categoriasRef.doc(doc.id).update({
-                        nome: nome,
-                        posicao: posicao,
-                        DIA: Day,
-                        STATE: Satus
-                    })
                     .then(function () {
                         categoriaIDALL.value = "";
                         categoriaInput.value = "";
@@ -96,8 +76,28 @@ function criarCategoria() {
                         buscarCategoriasECronograma();
                     })
                     .catch(function (error) {
-                        console.error('Erro ao atualizar categoria: ', error);
+                        console.error('Erro ao criar categoria: ', error);
                     });
+            } else {
+                // Atualizar categoria existente
+                querySnapshot.forEach(function (doc) {
+                    categoriasRef.doc(doc.id).update({
+                        nome: nome,
+                        posicao: parseInt(posicao),
+                        DIA: parseInt(Day),
+                        STATE: Satus
+                    })
+                        .then(function () {
+                            categoriaIDALL.value = "";
+                            categoriaInput.value = "";
+                            categoriaSequence.value = "";
+                            categoriaDay.value = "";
+                            categoriaSatus.checked = false;
+                            buscarCategoriasECronograma();
+                        })
+                        .catch(function (error) {
+                            console.error('Erro ao atualizar categoria: ', error);
+                        });
                 });
             }
         })
@@ -340,7 +340,9 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
     const categoriasArray = categoriasSnapshot
     const CategoriasAll = [];
     todasCategorias.forEach(function (categoriaDoc) {
-        CategoriasAll.push(categoriaDoc.data());
+        const categoriaData = categoriaDoc.data();
+        categoriaData.id = categoriaDoc.id;
+        CategoriasAll.push(categoriaData);
     });
 
     // Ordenar o array de categorias pelo campo 'posicao' em ordem crescente
@@ -385,20 +387,14 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             excluirButton.innerText = 'Excluir';
             excluirButton.className = "btn btn-outline-secondary";
             excluirButton.onclick = function () {
-                excluirCategoria(categoriaData.id);
+                excluirCategoria(categoriaID);
             };
 
             var editarButton = document.createElement('button');
             editarButton.innerText = 'Editar';
             editarButton.className = "btn btn-outline-secondary";
             editarButton.onclick = function () {
-                var newCatId = categoriaID;
-                var newCat = categoria;
-                var newPosition = posicao;
-                var newDay = dia;
-                var newState = STATE;
-
-                editarCategoria(newCatId, newCat, newPosition, newDay, newState);
+                editarCategoria(categoriaID, categoria, posicao, dia, STATE);
             };
 
 
@@ -592,8 +588,9 @@ function editarCategoria(categoriaID, categoria, posicao, dia, STATE) {
 // Função para buscar categorias e cronogramas no Firestore
 function buscarCategoriasECronograma() {
     var diaSemana = new Date().getDay();
+    console.log([diaSemana, (diaSemana + 1), (diaSemana + 2), 7])
     if (document.title != "LITURGIA EDITAVEL") {
-        var category = categoriasRef.where("DIA", "in", [diaSemana, 7]).where("STATE", "==", true);
+        var category = categoriasRef.where("DIA", "in", [diaSemana, (diaSemana + 1), (diaSemana + 2), 7]).where("STATE", "==", true);
     } else {
         var category = categoriasRef.where("STATE", "==", true);
     }
