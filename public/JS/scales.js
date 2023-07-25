@@ -12,6 +12,7 @@ firebase.initializeApp(firebaseConfig);
 // Referência para o Firestore
 var db = firebase.firestore();
 var storage = firebase.storage();
+var categoriaReader = "";
 
 // Referência para a coleção de categorias
 var categoriasRef = db.collection('programa');
@@ -54,7 +55,7 @@ function criarCategoria() {
                         categoriaIDALL.value = "";
                         categoriaInput.value = "";
                         categoriaSequence.value = "";
-                        buscarCategoriasECronograma();
+                        buscarCategorias();
                     })
                     .catch(function (error) {
                         console.error('Erro ao criar categoria: ', error);
@@ -70,7 +71,7 @@ function criarCategoria() {
                             categoriaIDALL.value = "";
                             categoriaInput.value = "";
                             categoriaSequence.value = "";
-                            buscarCategoriasECronograma();
+                            buscarCategorias();
                         })
                         .catch(function (error) {
                             console.error('Erro ao atualizar categoria: ', error);
@@ -125,7 +126,7 @@ function criarCronograma() {
     acaoInput.value = "";
     responsavelInput.value = "";
 
-    buscarCategoriasECronograma();
+    buscarCronograma(categoriaReader);
 }
 
 
@@ -179,7 +180,7 @@ function excluirCronograma(id) {
             console.error("Erro ao obter categoria: ", error);
         });
 
-    buscarCategoriasECronograma();
+    buscarCronograma(categoriaReader);
 }
 
 function showInput() {
@@ -211,12 +212,10 @@ function adicionarUmDia(data) {
 }
 
 // Função para renderizar as categorias e os cronogramas juntos
-function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot) {
+function renderizarCategorias(categoriasSnapshot) {
 
     // Converter a coleção de categorias em um array
     const categoriasArray = categoriasSnapshot.docs.map(doc => { const data = doc.data(); return { id: doc.id, ...data }; });
-    const cronogramaArray = cronogramaSnapshot.docs.map(doc => { const data = doc.data(); return { id: doc.id, ...data }; });
-
     // Ordenar o array de categorias pelo campo 'posicao' em ordem crescente
     categoriasArray.sort((a, b) => a.posicao - b.posicao);
 
@@ -244,7 +243,20 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot)
             var posicaoItem = document.createElement('td');
             posicaoItem.innerHTML = posicao;
             categoriaItemData.appendChild(posicaoItem);
+        }
 
+        var exibirCategoria = document.createElement('button');
+        exibirCategoria.innerText = 'Exibir';
+        exibirCategoria.className = "btn btn-outline-secondary";
+        exibirCategoria.onclick = function () {
+            categoriaReader = categoria;
+            buscarCronograma(categoria);
+        };
+        var exibirCategorias = document.createElement('td');
+        exibirCategorias.appendChild(exibirCategoria);
+        categoriaItemData.appendChild(exibirCategorias);
+
+        if (document.title == "ESCALAS EDITAVEL") {
             var excluirButton = document.createElement('button');
             excluirButton.innerText = 'Excluir';
             excluirButton.className = "btn btn-outline-secondary";
@@ -286,119 +298,120 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot)
             categoriaSelect.appendChild(option);
         });
     }
+}
+
+// Função para renderizar as categorias e os cronogramas juntos
+function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
+
+    // Converter a coleção de categorias em um array
+    const cronogramaArray = cronogramaSnapshot.docs.map(doc => { const data = doc.data(); return { id: doc.id, ...data }; });
+
     // Limpar a lista de cronogramas existentes
     cronogramaList.innerHTML = '';
 
-    // Renderizar as categorias e os cronogramas
-    categoriasArray.forEach(categoriaData => {
-        var categoriaKey = categoriaData.id;
-        var categoriaNome = categoriaData.nome;
+    // Renderizar o título da categoria centralizado
+    var categoriaTitulo = document.createElement('h2');
+    categoriaTitulo.style = "margin-top: 2%; margin-bottom: 3% color: white; background-color: #173f74; font-size:250%;"
+    categoriaTitulo.className = "text-center py-4 h1";
+    categoriaTitulo.innerText = categoriaNome;
+    categoriaTitulo.style.textAlign = 'center';
+    cronogramaList.appendChild(categoriaTitulo);
+    var cronogramaTable = document.createElement('table');
+    cronogramaTable.className = "table table-dark table-hover";
+    var cronogramaBody = document.createElement('tbody');
+    cronogramaTable.style = "margin-left: 5%; margin-right: 5%; max-width: 100%; margin: 0 auto; ";
 
-        // Renderizar o título da categoria centralizado
-        var categoriaTitulo = document.createElement('h2');
-        categoriaTitulo.style = "margin-top: 2%; margin-bottom: 3% color: white; background-color: #173f74; font-size:250%;"
-        categoriaTitulo.className = "text-center py-4 h1";
-        categoriaTitulo.innerText = categoriaNome;
-        categoriaTitulo.style.textAlign = 'center';
-        cronogramaList.appendChild(categoriaTitulo);
-        var cronogramaTable = document.createElement('table');
-        cronogramaTable.className = "table table-dark table-hover";
-        var cronogramaBody = document.createElement('tbody');
-        cronogramaTable.style = "margin-left: 5%; margin-right: 5%; max-width: 100%; margin: 0 auto; ";
-
-        // Filtrar os cronogramas pertencentes à categoria atual
-        var categoriaCronogramas = cronogramaArray.filter(function (cronogramaDoc) {
-            return cronogramaDoc.categoria === categoriaNome;
-        });
-
-        categoriaCronogramas.forEach(function (cronogramaDoc) {
-            var key = cronogramaDoc.id;
-            var dataObjeto = new Date(cronogramaDoc.horario);
-            var horario = cronogramaDoc.horario;
-            var acao = cronogramaDoc.acao;
-            var responsavel = cronogramaDoc.responsavel;
-
-            var cronogramaItem = document.createElement('tr');
-
-            if (horario) {
-                var horarioInput = document.createElement('td');
-                horarioInput.innerHTML = formatarData(dataObjeto);
-                cronogramaItem.appendChild(horarioInput);
-            } else {
-                var horarioInput = document.createElement('td');
-                cronogramaItem.appendChild(horarioInput);
-            }
-
-            if (acao) {
-                var acaoInput = document.createElement('td');
-                acaoInput.style = "width: 40%;";
-                var textoCompleto = document.createElement('pre');
-                textoCompleto.innerHTML = acao;
-                textoCompleto.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
-                acaoInput.appendChild(textoCompleto);
-                cronogramaItem.appendChild(acaoInput);
-            } else {
-                var acaoInput = document.createElement('td');
-                cronogramaItem.appendChild(acaoInput);
-            }
-
-            if (responsavel) {
-                var responsavelInput = document.createElement('td');
-                responsavelInput.innerHTML = responsavel;
-                cronogramaItem.appendChild(responsavelInput);
-            } else {
-                var responsavelInput = document.createElement('td');
-                cronogramaItem.appendChild(responsavelInput);
-            }
-
-            if (document.title == "ESCALAS EDITAVEL") {
-                var cronogramaEdit = document.createElement('td');
-                var editarButton = document.createElement('button');
-                editarButton.className = "btn btn-outline-secondary";
-                editarButton.innerText = 'Editar';
-                editarButton.onclick = function () {
-                    var novaCategoriaId = categoriaNome;
-                    var novoHorario = horario;
-                    var novaAcao = acao;
-                    var novoResponsavel = responsavel;
-                    var newkey = key;
-
-                    atualizarCronograma(newkey, novaCategoriaId, novoHorario, novaAcao, novoResponsavel);
-                };
-                cronogramaEdit.appendChild(editarButton);
-
-                var excluirButton = document.createElement('button');
-                excluirButton.className = "btn btn-outline-secondary";
-                excluirButton.innerText = 'Excluir';
-                excluirButton.onclick = function () {
-                    excluirCronograma(key);
-                };
-                cronogramaEdit.appendChild(excluirButton);
-                cronogramaItem.appendChild(cronogramaEdit)
-            }
-            cronogramaBody.appendChild(cronogramaItem)
-
-            if (document.title != "ESCALAS EDITAVEL") {
-                // Selecionar todos os elementos de input na tela
-                const inputs = document.querySelectorAll('input');
-                const inputxs = document.querySelectorAll('textarea');
-
-                // Percorrer cada elemento de input e definir o atributo readonly
-                inputs.forEach(input => {
-                    input.readOnly = true;
-
-                });
-
-                // Percorrer cada elemento de input e definir o atributo readonly
-                inputxs.forEach(input => {
-                    input.readOnly = true;
-                });
-            }
-        });
-        cronogramaTable.appendChild(cronogramaBody);
-        cronogramaList.appendChild(cronogramaTable);
-
+    // Filtrar os cronogramas pertencentes à categoria atual
+    var categoriaCronogramas = cronogramaArray.filter(function (cronogramaDoc) {
+        return cronogramaDoc.categoria === categoriaNome;
     });
+
+    categoriaCronogramas.forEach(function (cronogramaDoc) {
+        var key = cronogramaDoc.id;
+        var dataObjeto = new Date(cronogramaDoc.horario);
+        var horario = cronogramaDoc.horario;
+        var acao = cronogramaDoc.acao;
+        var responsavel = cronogramaDoc.responsavel;
+
+        var cronogramaItem = document.createElement('tr');
+
+        if (horario) {
+            var horarioInput = document.createElement('td');
+            horarioInput.innerHTML = formatarData(dataObjeto);
+            cronogramaItem.appendChild(horarioInput);
+        } else {
+            var horarioInput = document.createElement('td');
+            cronogramaItem.appendChild(horarioInput);
+        }
+
+        if (acao) {
+            var acaoInput = document.createElement('td');
+            acaoInput.style = "width: 40%;";
+            var textoCompleto = document.createElement('pre');
+            textoCompleto.innerHTML = acao;
+            textoCompleto.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
+            acaoInput.appendChild(textoCompleto);
+            cronogramaItem.appendChild(acaoInput);
+        } else {
+            var acaoInput = document.createElement('td');
+            cronogramaItem.appendChild(acaoInput);
+        }
+
+        if (responsavel) {
+            var responsavelInput = document.createElement('td');
+            responsavelInput.innerHTML = responsavel;
+            cronogramaItem.appendChild(responsavelInput);
+        } else {
+            var responsavelInput = document.createElement('td');
+            cronogramaItem.appendChild(responsavelInput);
+        }
+
+        if (document.title == "ESCALAS EDITAVEL") {
+            var cronogramaEdit = document.createElement('td');
+            var editarButton = document.createElement('button');
+            editarButton.className = "btn btn-outline-secondary";
+            editarButton.innerText = 'Editar';
+            editarButton.onclick = function () {
+                var novaCategoriaId = categoriaNome;
+                var novoHorario = horario;
+                var novaAcao = acao;
+                var novoResponsavel = responsavel;
+                var newkey = key;
+
+                atualizarCronograma(newkey, novaCategoriaId, novoHorario, novaAcao, novoResponsavel);
+            };
+            cronogramaEdit.appendChild(editarButton);
+
+            var excluirButton = document.createElement('button');
+            excluirButton.className = "btn btn-outline-secondary";
+            excluirButton.innerText = 'Excluir';
+            excluirButton.onclick = function () {
+                excluirCronograma(key);
+            };
+            cronogramaEdit.appendChild(excluirButton);
+            cronogramaItem.appendChild(cronogramaEdit)
+        }
+        cronogramaBody.appendChild(cronogramaItem)
+
+        if (document.title != "ESCALAS EDITAVEL") {
+            // Selecionar todos os elementos de input na tela
+            const inputs = document.querySelectorAll('input');
+            const inputxs = document.querySelectorAll('textarea');
+
+            // Percorrer cada elemento de input e definir o atributo readonly
+            inputs.forEach(input => {
+                input.readOnly = true;
+
+            });
+
+            // Percorrer cada elemento de input e definir o atributo readonly
+            inputxs.forEach(input => {
+                input.readOnly = true;
+            });
+        }
+    });
+    cronogramaTable.appendChild(cronogramaBody);
+    cronogramaList.appendChild(cronogramaTable);
 }
 
 function abrirLinkEmNovaGuia(link) {
@@ -414,16 +427,29 @@ function editarCategoria(categoriaID, categoria, posicao) {
 }
 
 // Função para buscar categorias e cronogramas no Firestore
-function buscarCategoriasECronograma() {
+function buscarCategorias() {
     Promise.all([
-        categoriasRef.get(),
-        cronogramaRef.orderBy("horario", "asc").get()
+        categoriasRef.get()
     ])
         .then(function (results) {
             var categoriasEncontradas = results[0];
-            var cronogramaSnapshot = results[1];
 
-            renderizarCategoriasECronograma(categoriasEncontradas, cronogramaSnapshot);
+            renderizarCategorias(categoriasEncontradas);
+        })
+        .catch(function (error) {
+            console.error('Erro ao obter dados do Firestore: ', error);
+        });
+}
+
+// Função para buscar categorias e cronogramas no Firestore
+function buscarCronograma(categoria) {
+    Promise.all([
+        cronogramaRef.where("categoria","==",categoria).orderBy("horario","asc").get()
+    ])
+        .then(function (results) {
+            var cronogramaSnapshot = results[0];
+
+            renderizarCronograma(categoria,cronogramaSnapshot);
         })
         .catch(function (error) {
             console.error('Erro ao obter dados do Firestore: ', error);
@@ -437,7 +463,7 @@ function excluirCategoria(id) {
         .catch(function (error) {
             console.error("Erro ao excluir categoria: ", error);
         });
-    buscarCategoriasECronograma()
+    buscarCategorias()
 }
 
 
@@ -449,7 +475,7 @@ function inicializarPagina() {
         document.getElementById('criarCronogramaBtn').addEventListener('click', criarCronograma);
     }
     // Carregar categorias e cronogramas do Firestore
-    buscarCategoriasECronograma();
+    buscarCategorias();
 }
 
 // Chamar a função para inicializar a página
