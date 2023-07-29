@@ -252,9 +252,8 @@ function renderizarCategorias(categoriasSnapshot) {
             categoriaReader = categoria;
             buscarCronograma(categoria);
         };
-        var exibirCategorias = document.createElement('td');
-        exibirCategorias.appendChild(exibirCategoria);
-        categoriaItemData.appendChild(exibirCategorias);
+        var actionsCategorias = document.createElement('td');
+        actionsCategorias.appendChild(exibirCategoria);
 
         if (document.title == "ESCALAS EDITAVEL") {
             var excluirButton = document.createElement('button');
@@ -270,15 +269,10 @@ function renderizarCategorias(categoriasSnapshot) {
             editarButton.onclick = function () {
                 editarCategoria(categoriaID, categoria, posicao);
             };
-
-
-            var editarButtom = document.createElement('td');
-            var excluirButtom = document.createElement('td');
-            excluirButtom.appendChild(excluirButton);
-            editarButtom.appendChild(editarButton);
-            categoriaItemData.appendChild(editarButtom);
-            categoriaItemData.appendChild(excluirButtom);
+            actionsCategorias.appendChild(excluirButton);
+            actionsCategorias.appendChild(editarButton);
         }
+        categoriaItemData.appendChild(actionsCategorias);
         categoriaBody.appendChild(categoriaItemData);
     });
 
@@ -338,6 +332,7 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
         if (horario) {
             var horarioInput = document.createElement('td');
             horarioInput.innerHTML = formatarData(dataObjeto);
+            horarioInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             cronogramaItem.appendChild(horarioInput);
         } else {
             var horarioInput = document.createElement('td');
@@ -346,11 +341,11 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
 
         if (acao) {
             var acaoInput = document.createElement('td');
-            acaoInput.style = "width: 40%;";
+            acaoInput.style = "width: 30%;";
             var textoCompleto = document.createElement('pre');
             textoCompleto.innerHTML = acao;
-            textoCompleto.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             acaoInput.appendChild(textoCompleto);
+            acaoInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             cronogramaItem.appendChild(acaoInput);
         } else {
             var acaoInput = document.createElement('td');
@@ -360,6 +355,7 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
         if (responsavel) {
             var responsavelInput = document.createElement('td');
             responsavelInput.innerHTML = responsavel;
+            responsavelInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             cronogramaItem.appendChild(responsavelInput);
         } else {
             var responsavelInput = document.createElement('td');

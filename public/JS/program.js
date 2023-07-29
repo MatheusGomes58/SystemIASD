@@ -105,6 +105,14 @@ function criarCategoria() {
             console.error('Erro ao buscar categoria: ', error);
         });
 }
+function changeState(categoriaID, categoria, posicao, dia, checkbox){
+    categoriasRef.doc(categoriaID).update({
+        nome: categoria,
+        posicao: parseInt(posicao),
+        DIA: parseInt(dia),
+        STATE: checkbox.checked
+    })
+}
 
 
 function criarCronograma() {
@@ -380,7 +388,7 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             categoriaItemData.appendChild(posicaoItem);
 
             var posicaoItem = document.createElement('td');
-            posicaoItem.innerHTML = STATE;
+            posicaoItem.innerHTML = "<div class='form-check form-switch'><input class='form-check-input' type='checkbox' id='"+ categoriaID +"'style='display: flex; justify-content: center; align-items: center;' onchange='changeState(\""+categoriaID +"\",\""+ categoria+"\",\""+ posicao+"\",\""+ dia+"\","+"this)'></div>";
             categoriaItemData.appendChild(posicaoItem);
 
             var excluirButton = document.createElement('button');
@@ -407,10 +415,14 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
 
             categoriaBody.appendChild(categoriaItemData);
         });
-
         categoriaTable.appendChild(categoriaBody);
         categoriaList.appendChild(categoriaTable);
 
+        CategoriasAll.forEach(categoriaData => {
+            var categoriaID = categoriaData.id;
+            var STATE = categoriaData.STATE;
+            document.getElementById(categoriaID).checked = STATE;
+        })
 
         // Popula a lista de categorias no formulário de criação e edição de cronogramas
         categoriaSelect.innerHTML = '';
@@ -467,6 +479,7 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             if (horario) {
                 var horarioInput = document.createElement('td');
                 horarioInput.innerHTML = horario;
+                horarioInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
                 cronogramaItem.appendChild(horarioInput);
             } else {
                 var horarioInput = document.createElement('td');
@@ -475,11 +488,9 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
 
             if (acao) {
                 var acaoInput = document.createElement('td');
-                acaoInput.style = "width: 40%;";
-                var textoCompleto = document.createElement('pre');
-                textoCompleto.innerHTML = acao;
-                textoCompleto.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
-                acaoInput.appendChild(textoCompleto);
+                acaoInput.style = "width: 30%;";
+                acaoInput.innerHTML = acao;
+                acaoInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
                 cronogramaItem.appendChild(acaoInput);
             } else {
                 var acaoInput = document.createElement('td');
@@ -489,6 +500,7 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             if (responsavel) {
                 var responsavelInput = document.createElement('td');
                 responsavelInput.innerHTML = responsavel;
+                responsavelInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
                 cronogramaItem.appendChild(responsavelInput);
             } else {
                 var responsavelInput = document.createElement('td');
@@ -496,14 +508,14 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             }
 
             if (linkExterno) {
-                var linkExternoButtonTd = document.createElement('td');
+                var imagemURLButtonTd = document.createElement('td');
                 var linkExternoButton = document.createElement('button');
                 linkExternoButton.className = "btn btn-outline-secondary";
                 linkExternoButton.innerText = 'LINK';
                 linkExternoButton.onclick = function () { abrirLinkEmNovaGuia(linkExterno); };
                 linkExternoButton.value = linkExterno;
-                linkExternoButtonTd.appendChild(linkExternoButton);
-                cronogramaItem.appendChild(linkExternoButtonTd);
+                imagemURLButtonTd.appendChild(linkExternoButton);
+                cronogramaItem.appendChild(imagemURLButtonTd);
             }
 
             if (imagemURL) {
@@ -521,7 +533,6 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             }
 
             if (document.title == "LITURGIA EDITAVEL") {
-                var cronogramaEdit = document.createElement('td');
                 var editarButton = document.createElement('button');
                 editarButton.className = "btn btn-outline-secondary";
                 editarButton.innerText = 'Editar';
@@ -535,7 +546,7 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
 
                     atualizarCronograma(key, novaCategoriaId, novoHorario, novaAcao, novoResponsavel, novaimagemURL, novolinkExterno);
                 };
-                cronogramaEdit.appendChild(editarButton);
+                imagemURLButtonTd.appendChild(editarButton)
 
                 var excluirButton = document.createElement('button');
                 excluirButton.className = "btn btn-outline-secondary";
@@ -543,8 +554,8 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
                 excluirButton.onclick = function () {
                     excluirCronograma(key);
                 };
-                cronogramaEdit.appendChild(excluirButton);
-                cronogramaItem.appendChild(cronogramaEdit)
+                imagemURLButtonTd.appendChild(excluirButton)
+                cronogramaItem.appendChild(imagemURLButtonTd)
             }
             cronogramaBody.appendChild(cronogramaItem)
 
