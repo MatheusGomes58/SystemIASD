@@ -393,22 +393,7 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
         }
         cronogramaBody.appendChild(cronogramaItem)
 
-        if (document.title != "ESCALAS EDITAVEL") {
-            // Selecionar todos os elementos de input na tela
-            const inputs = document.querySelectorAll('input');
-            const inputxs = document.querySelectorAll('textarea');
-
-            // Percorrer cada elemento de input e definir o atributo readonly
-            inputs.forEach(input => {
-                input.readOnly = true;
-
-            });
-
-            // Percorrer cada elemento de input e definir o atributo readonly
-            inputxs.forEach(input => {
-                input.readOnly = true;
-            });
-        }
+       
     });
     cronogramaTable.appendChild(cronogramaBody);
     cronogramaList.appendChild(cronogramaTable);
