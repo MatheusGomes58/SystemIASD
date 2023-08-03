@@ -247,7 +247,7 @@ function criarCronograma() {
             }
         }
     }
-
+    idCronInput.value = "";
     categoriaSelect.value = "";
     horarioInput.value = "";
     acaoInput.value = "";
@@ -377,14 +377,17 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
 
             var categoriaItem = document.createElement('td');
             categoriaItem.innerHTML = categoria;
+            categoriaItem.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             categoriaItemData.appendChild(categoriaItem);
 
             var posicaoItem = document.createElement('td');
             posicaoItem.innerHTML = posicao;
+            posicaoItem.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             categoriaItemData.appendChild(posicaoItem);
 
             var posicaoItem = document.createElement('td');
             posicaoItem.innerHTML = diasDaSemana[dia];
+            posicaoItem.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             categoriaItemData.appendChild(posicaoItem);
 
             var posicaoItem = document.createElement('td');

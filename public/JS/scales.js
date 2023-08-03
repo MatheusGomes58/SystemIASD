@@ -126,7 +126,8 @@ function criarCronograma() {
     acaoInput.value = "";
     responsavelInput.value = "";
 
-    buscarCronograma(categoriaReader);
+    
+    buscarCategorias();
 }
 
 
@@ -180,7 +181,7 @@ function excluirCronograma(id) {
             console.error("Erro ao obter categoria: ", error);
         });
 
-    buscarCronograma(categoriaReader);
+    buscarCategoriaECronograma()
 }
 
 function showInput() {
@@ -326,10 +327,17 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
         var horario = cronogramaDoc.horario;
         var acao = cronogramaDoc.acao;
         var responsavel = cronogramaDoc.responsavel;
+        var validaMes = true;
 
         var cronogramaItem = document.createElement('tr');
+        for (let mes = 0; mes < 12; mes++) {
+            const nomeMes = new Date(2023, mes).toLocaleString('default', { month: 'long' });
+            if (acao.toLowerCase() === nomeMes.toLowerCase()) {
+                validaMes = false;
+            }
+        }
 
-        if (horario) {
+        if (horario && validaMes) {
             var horarioInput = document.createElement('td');
             horarioInput.innerHTML = formatarData(dataObjeto);
             horarioInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
@@ -342,9 +350,7 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
         if (acao) {
             var acaoInput = document.createElement('td');
             acaoInput.style = "width: 30%;";
-            var textoCompleto = document.createElement('pre');
-            textoCompleto.innerHTML = acao;
-            acaoInput.appendChild(textoCompleto);
+            acaoInput.innerHTML = acao;
             acaoInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
             cronogramaItem.appendChild(acaoInput);
         } else {
@@ -385,11 +391,24 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
                 excluirCronograma(key);
             };
             cronogramaEdit.appendChild(excluirButton);
+
+            var editarButton = document.createElement('button');
+            editarButton.className = "btn btn-outline-secondary";
+            editarButton.innerText = 'Copiar';
+            editarButton.onclick = function () {
+                var novaCategoriaId = categoriaNome;
+                var novoHorario = horario;
+                var novaAcao = acao;
+                var novoResponsavel = responsavel;
+
+                atualizarCronograma("" , novaCategoriaId, novoHorario, novaAcao, novoResponsavel);
+            };
+            cronogramaEdit.appendChild(editarButton);
             cronogramaItem.appendChild(cronogramaEdit)
         }
         cronogramaBody.appendChild(cronogramaItem)
 
-       
+
     });
     cronogramaTable.appendChild(cronogramaBody);
     cronogramaList.appendChild(cronogramaTable);
@@ -420,17 +439,19 @@ function buscarCategorias() {
         .catch(function (error) {
             console.error('Erro ao obter dados do Firestore: ', error);
         });
+        
+    buscarCronograma(categoriaReader);
 }
 
 // Função para buscar categorias e cronogramas no Firestore
 function buscarCronograma(categoria) {
     Promise.all([
-        cronogramaRef.where("categoria","==",categoria).orderBy("horario","asc").get()
+        cronogramaRef.where("categoria", "==", categoria).orderBy("horario", "asc").get()
     ])
         .then(function (results) {
             var cronogramaSnapshot = results[0];
 
-            renderizarCronograma(categoria,cronogramaSnapshot);
+            renderizarCronograma(categoria, cronogramaSnapshot);
         })
         .catch(function (error) {
             console.error('Erro ao obter dados do Firestore: ', error);
