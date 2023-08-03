@@ -415,7 +415,8 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
 }
 
 function abrirLinkEmNovaGuia(link) {
-    window.open(link, "_blank");
+    var win = window.open(link, '_blank');  
+    win.focus();
 }
 
 function editarCategoria(categoriaID, categoria, posicao) {
