@@ -13,12 +13,13 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.firestore();
 var storage = firebase.storage();
 var categoriaReader = "";
+var categoriasPesquisadas = [];
 
 // Referência para a coleção de categorias
-var categoriasRef = db.collection('programa');
+var categoriasRef = db.collection('departamento');
 
 // Referência para a coleção de cronogramas
-var cronogramaRef = db.collection('escala');
+var cronogramaRef = db.collection('lideres');
 
 // Elementos do DOM categoria
 var categoriaIDALL = document.getElementById('catID');
@@ -126,7 +127,7 @@ function criarCronograma() {
     acaoInput.value = "";
     responsavelInput.value = "";
 
-    
+
     buscarCategorias();
 }
 
@@ -196,21 +197,6 @@ function showInput() {
         fileInput.style.display = "none";
     }
 }
-function formatarData(data) {
-    data = adicionarUmDia(data)
-    var dia = data.getDate();
-    var mes = data.getMonth() + 1;
-    var ano = data.getFullYear();
-    dia = dia < 10 ? "0" + dia : dia;
-    mes = mes < 10 ? "0" + mes : mes;
-    return dia + "/" + mes + "/" + ano;
-}
-
-function adicionarUmDia(data) {
-    var novaData = new Date(data);
-    novaData.setDate(novaData.getDate() + 1);
-    return novaData;
-}
 
 // Função para renderizar as categorias e os cronogramas juntos
 function renderizarCategorias(categoriasSnapshot) {
@@ -219,68 +205,81 @@ function renderizarCategorias(categoriasSnapshot) {
     const categoriasArray = categoriasSnapshot.docs.map(doc => { const data = doc.data(); return { id: doc.id, ...data }; });
     // Ordenar o array de categorias pelo campo 'posicao' em ordem crescente
     categoriasArray.sort((a, b) => a.posicao - b.posicao);
+    categoriasPesquisadas = categoriasArray;
 
-    // Limpar a lista de categorias existentes
-    categoriaList.innerHTML = '';
+    if (document.title == "COMISSÃO EDITAVEL") {
+        // Limpar a lista de categorias existentes
+        categoriaList.innerHTML = '';
 
-    var categoriaTable = document.createElement('table');
-    categoriaTable.className = "table table-dark table-hover";
-    categoriaTable.style = "margin-left: 5%; margin-right: 5%; max-width: 100%; margin: 0 auto; ";
-    var categoriaBody = document.createElement('tbody');
+        var categoriaTable = document.createElement('table');
+        categoriaTable.className = "table table-dark table-hover";
+        categoriaTable.style = "margin-left: 5%; margin-right: 5%; max-width: 100%; margin: 0 auto; ";
+        var categoriaBody = document.createElement('tbody');
 
-    categoriasArray.forEach(categoriaData => {
-        var categoriaID = categoriaData.id;
-        var categoria = categoriaData.nome;
-        var posicao = categoriaData.posicao;
+        categoriasPesquisadas.forEach(categoriaData => {
+            var categoriaID = categoriaData.id;
+            var categoria = categoriaData.nome;
+            var posicao = categoriaData.posicao;
 
-        var categoriaItemData = document.createElement('tr');
-        categoriaItemData.className = "table-created"
+            var categoriaItemData = document.createElement('tr');
+            categoriaItemData.className = "table-created"
 
-        var categoriaItem = document.createElement('td');
-        categoriaItem.innerHTML = categoria;
-        categoriaItemData.appendChild(categoriaItem);
+            var categoriaItem = document.createElement('td');
+            categoriaItem.innerHTML = categoria;
+            categoriaItemData.appendChild(categoriaItem);
 
-        if (document.title == "ESCALAS EDITAVEL") {
-            var posicaoItem = document.createElement('td');
-            posicaoItem.innerHTML = posicao;
-            categoriaItemData.appendChild(posicaoItem);
-        }
+            if (document.title == "COMISSÃO EDITAVEL") {
+                var posicaoItem = document.createElement('td');
+                posicaoItem.innerHTML = posicao;
+                categoriaItemData.appendChild(posicaoItem);
+            }
 
-        var exibirCategoria = document.createElement('button');
-        exibirCategoria.innerText = 'Exibir';
-        exibirCategoria.className = "btn btn-outline-secondary";
-        exibirCategoria.onclick = function () {
-            categoriaReader = categoria;
-            buscarCronograma(categoria);
-        };
-        var actionsCategorias = document.createElement('td');
-        actionsCategorias.appendChild(exibirCategoria);
+            var exibirCategoria = document.createElement('button');
+            exibirCategoria.innerText = 'Exibir';
+            exibirCategoria.className = "btn btn-outline-secondary";
+            if (posicao == 0) {
+                exibirCategoria.onclick = function () {
+                    categoriasArray.forEach(categoriaData => {
+                        var nome = categoriaData.nome;
+                        var posicao = categoriaData.posicao;
+                        if (posicao != 0) {
+                            buscarCronograma(nome);
+                        }
+                    })
+                };
+            } else {
+                exibirCategoria.onclick = function () {
+                    categoriaReader = categoria;
+                    buscarCronograma(categoria);
+                };
+            }
+            var actionsCategorias = document.createElement('td');
+            actionsCategorias.appendChild(exibirCategoria);
 
-        if (document.title == "ESCALAS EDITAVEL") {
-            var excluirButton = document.createElement('button');
-            excluirButton.innerText = 'Excluir';
-            excluirButton.className = "btn btn-outline-secondary";
-            excluirButton.onclick = function () {
-                excluirCategoria(categoriaID);
-            };
+            if (document.title == "COMISSÃO EDITAVEL") {
+                var excluirButton = document.createElement('button');
+                excluirButton.innerText = 'Excluir';
+                excluirButton.className = "btn btn-outline-secondary";
+                excluirButton.onclick = function () {
+                    excluirCategoria(categoriaID);
+                };
 
-            var editarButton = document.createElement('button');
-            editarButton.innerText = 'Editar';
-            editarButton.className = "btn btn-outline-secondary";
-            editarButton.onclick = function () {
-                editarCategoria(categoriaID, categoria, posicao);
-            };
-            actionsCategorias.appendChild(excluirButton);
-            actionsCategorias.appendChild(editarButton);
-        }
-        categoriaItemData.appendChild(actionsCategorias);
-        categoriaBody.appendChild(categoriaItemData);
-    });
+                var editarButton = document.createElement('button');
+                editarButton.innerText = 'Editar';
+                editarButton.className = "btn btn-outline-secondary";
+                editarButton.onclick = function () {
+                    editarCategoria(categoriaID, categoria, posicao);
+                };
+                actionsCategorias.appendChild(excluirButton);
+                actionsCategorias.appendChild(editarButton);
+            }
+            categoriaItemData.appendChild(actionsCategorias);
+            categoriaBody.appendChild(categoriaItemData);
+        });
 
-    categoriaTable.appendChild(categoriaBody);
-    categoriaList.appendChild(categoriaTable);
+        categoriaTable.appendChild(categoriaBody);
+        categoriaList.appendChild(categoriaTable);
 
-    if (document.title == "ESCALAS EDITAVEL") {
         // Popula a lista de categorias no formulário de criação e edição de cronogramas
         categoriaSelect.innerHTML = '';
         categoriasArray.forEach(categoriaData => {
@@ -301,9 +300,6 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
     // Converter a coleção de categorias em um array
     const cronogramaArray = cronogramaSnapshot.docs.map(doc => { const data = doc.data(); return { id: doc.id, ...data }; });
 
-    // Limpar a lista de cronogramas existentes
-    cronogramaList.innerHTML = '';
-
     // Renderizar o título da categoria centralizado
     var categoriaTitulo = document.createElement('h2');
     categoriaTitulo.style = "margin-top: 2%; margin-bottom: 3% color: white; background-color: #173f74; font-size:250%;"
@@ -323,29 +319,13 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
 
     categoriaCronogramas.forEach(function (cronogramaDoc) {
         var key = cronogramaDoc.id;
-        var dataObjeto = new Date(cronogramaDoc.horario);
+        var dataObjeto = cronogramaDoc.horario;
         var horario = cronogramaDoc.horario;
         var acao = cronogramaDoc.acao;
         var responsavel = cronogramaDoc.responsavel;
         var validaMes = true;
 
         var cronogramaItem = document.createElement('tr');
-        for (let mes = 0; mes < 12; mes++) {
-            const nomeMes = new Date(2023, mes).toLocaleString('default', { month: 'long' });
-            if (acao.toLowerCase() === nomeMes.toLowerCase()) {
-                validaMes = false;
-            }
-        }
-
-        if (horario && validaMes) {
-            var horarioInput = document.createElement('td');
-            horarioInput.innerHTML = formatarData(dataObjeto);
-            horarioInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
-            cronogramaItem.appendChild(horarioInput);
-        } else {
-            var horarioInput = document.createElement('td');
-            cronogramaItem.appendChild(horarioInput);
-        }
 
         if (acao) {
             var acaoInput = document.createElement('td');
@@ -368,7 +348,7 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
             cronogramaItem.appendChild(responsavelInput);
         }
 
-        if (document.title == "ESCALAS EDITAVEL") {
+        if (document.title == "COMISSÃO EDITAVEL") {
             var cronogramaEdit = document.createElement('td');
             var editarButton = document.createElement('button');
             editarButton.className = "btn btn-outline-secondary";
@@ -401,7 +381,7 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
                 var novaAcao = acao;
                 var novoResponsavel = responsavel;
 
-                atualizarCronograma("" , novaCategoriaId, novoHorario, novaAcao, novoResponsavel);
+                atualizarCronograma("", novaCategoriaId, novoHorario, novaAcao, novoResponsavel);
             };
             cronogramaEdit.appendChild(editarButton);
             cronogramaItem.appendChild(cronogramaEdit)
@@ -415,7 +395,7 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
 }
 
 function abrirLinkEmNovaGuia(link) {
-    window.open(link,'name','width=600,height=400')
+    window.open(link, 'name', 'width=600,height=400')
 }
 
 function editarCategoria(categoriaID, categoria, posicao) {
@@ -439,23 +419,26 @@ function buscarCategorias() {
         .catch(function (error) {
             console.error('Erro ao obter dados do Firestore: ', error);
         });
-        
     buscarCronograma(categoriaReader);
 }
 
 // Função para buscar categorias e cronogramas no Firestore
 function buscarCronograma(categoria) {
-    Promise.all([
-        cronogramaRef.where("categoria", "==", categoria).orderBy("horario", "asc").get()
-    ])
-        .then(function (results) {
-            var cronogramaSnapshot = results[0];
+    if (categoria) {
+        // Limpar a lista de cronogramas existentes
+        cronogramaList.innerHTML = '';
+        Promise.all([
+            cronogramaRef.where("categoria", "==", categoria).orderBy("horario", "asc").get()
+        ])
+            .then(function (results) {
+                var cronogramaSnapshot = results[0];
 
-            renderizarCronograma(categoria, cronogramaSnapshot);
-        })
-        .catch(function (error) {
-            console.error('Erro ao obter dados do Firestore: ', error);
-        });
+                renderizarCronograma(categoria, cronogramaSnapshot);
+            })
+            .catch(function (error) {
+                console.error('Erro ao obter dados do Firestore: ', error);
+            });
+    }
 }
 
 
@@ -468,16 +451,39 @@ function excluirCategoria(id) {
     buscarCategorias()
 }
 
+function buscarCategoriaECronograma() {
+    // Limpar a lista de cronogramas existentes
+    cronogramaList.innerHTML = '';
+    Promise.all([
+        categoriasRef.get()
+    ])
+        .then(function (results) {
+            var categoriasEncontradas = results[0];
+
+            renderizarCategorias(categoriasEncontradas);
+            categoriasPesquisadas.forEach(categoriaData => {
+                var nome = categoriaData.nome;
+                console.log(nome)
+                var posicao = categoriaData.posicao;
+                if (posicao != 0) {
+                    buscarCronograma(nome)
+                }
+            });
+        })
+        .catch(function (error) {
+            console.error('Erro ao obter dados do Firestore: ', error);
+        });
+}
 
 // Função para inicializar a página
 function inicializarPagina() {
-    if (document.title == "ESCALAS EDITAVEL") {
+    if (document.title == "COMISSÃO EDITAVEL") {
         // Registrar os eventos dos botões e formulários
         document.getElementById('criarCategoriaBtn').addEventListener('click', criarCategoria);
         document.getElementById('criarCronogramaBtn').addEventListener('click', criarCronograma);
     }
     // Carregar categorias e cronogramas do Firestore
-    buscarCategorias();
+    buscarCategoriaECronograma();
 }
 
 // Chamar a função para inicializar a página

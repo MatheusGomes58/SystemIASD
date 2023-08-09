@@ -105,7 +105,7 @@ function criarCategoria() {
             console.error('Erro ao buscar categoria: ', error);
         });
 }
-function changeState(categoriaID, categoria, posicao, dia, checkbox){
+function changeState(categoriaID, categoria, posicao, dia, checkbox) {
     categoriasRef.doc(categoriaID).update({
         nome: categoria,
         posicao: parseInt(posicao),
@@ -391,7 +391,7 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             categoriaItemData.appendChild(posicaoItem);
 
             var posicaoItem = document.createElement('td');
-            posicaoItem.innerHTML = "<div class='form-check form-switch'><input class='form-check-input' type='checkbox' id='"+ categoriaID +"'style='display: flex; justify-content: center; align-items: center;' onchange='changeState(\""+categoriaID +"\",\""+ categoria+"\",\""+ posicao+"\",\""+ dia+"\","+"this)'></div>";
+            posicaoItem.innerHTML = "<div class='form-check form-switch'><input class='form-check-input' type='checkbox' id='" + categoriaID + "'style='display: flex; justify-content: center; align-items: center;' onchange='changeState(\"" + categoriaID + "\",\"" + categoria + "\",\"" + posicao + "\",\"" + dia + "\"," + "this)'></div>";
             categoriaItemData.appendChild(posicaoItem);
 
             var excluirButton = document.createElement('button');
@@ -558,6 +558,19 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
                     excluirCronograma(key);
                 };
                 imagemURLButtonTd.appendChild(excluirButton)
+
+                var editarButton = document.createElement('button');
+                editarButton.className = "btn btn-outline-secondary";
+                editarButton.innerText = 'Copiar';
+                editarButton.onclick = function () {
+                    var novaCategoriaId = categoriaNome;
+                    var novoHorario = horario;
+                    var novaAcao = acao;
+                    var novoResponsavel = responsavel;
+
+                    atualizarCronograma(key, novaCategoriaId, novoHorario, novaAcao, novoResponsavel, novaimagemURL, novolinkExterno);
+                };
+                imagemURLButtonTd.appendChild(editarButton);
                 cronogramaItem.appendChild(imagemURLButtonTd)
             }
             cronogramaBody.appendChild(cronogramaItem)
@@ -586,8 +599,7 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
 }
 
 function abrirLinkEmNovaGuia(link) {
-    var win = window.open(link, '_blank');  
-    win.focus();
+    window.open(link, 'name', 'width=600,height=400')
 }
 
 function editarCategoria(categoriaID, categoria, posicao, dia, STATE) {
