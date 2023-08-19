@@ -48,6 +48,7 @@ var cronogramaList = document.getElementById('cronogramaList');
 var selectedOption = document.getElementById("seletor");
 var textInput = document.getElementById("link");
 var fileInput = document.getElementById("file");
+var cronogramaSatus = document.getElementById('switchCronograma');
 
 // Função para criar uma categoria
 function criarCategoria() {
@@ -114,6 +115,17 @@ function changeState(categoriaID, categoria, posicao, dia, checkbox) {
     })
 }
 
+function changeStatusCronograma(cronogramaID, categoriaName, horario, acao, responsavel, imagem, textInputs, status) {
+   cronogramaRef.doc(cronogramaID).update({
+        categoria: categoriaName ? categoriaName : "",
+        horario: horario ? horario : "",
+        acao: acao ? acao : "",
+        responsavel: responsavel ? responsavel : "",
+        imagemURL: imagem ? imagem : "",
+        linkExterno: textInputs ? textInputs : "",
+        status: status ? status : ""
+    })
+}
 
 function criarCronograma() {
     var cronogramaID = idCronInput.value;
@@ -124,6 +136,7 @@ function criarCronograma() {
     var responsavel = responsavelInput.value;
     var fileInputs = fileInput;
     var textInputs = textInput.value;
+    var status = cronogramaSatus.checked;
 
     if (!cronogramaID) {
         // Verificar se há uma imagem selecionada
@@ -147,7 +160,8 @@ function criarCronograma() {
                         acao: acao,
                         responsavel: responsavel,
                         imagemURL: downloadURL,
-                        linkExterno: textInputs
+                        linkExterno: textInputs,
+                        status: status
                     })
                         .then(function (docRef) {
                             console.log('Cronograma criado com ID: ', docRef.id);
@@ -167,7 +181,8 @@ function criarCronograma() {
                 acao: acao,
                 responsavel: responsavel,
                 imagemURL: "",
-                linkExterno: textInputs
+                linkExterno: textInputs,
+                status: status
             })
                 .then(function (docRef) {
                     console.log('Cronograma criado com ID: ', docRef.id);
@@ -182,7 +197,8 @@ function criarCronograma() {
                 acao: acao,
                 responsavel: responsavel,
                 imagemURL: "",
-                linkExterno: ""
+                linkExterno: "",
+                status: status
             })
                 .then(function (docRef) {
                     console.log('Cronograma criado com ID: ', docRef.id);
@@ -199,7 +215,8 @@ function criarCronograma() {
                 acao: acao,
                 responsavel: responsavel,
                 imagemURL: "",
-                linkExterno: textInputs
+                linkExterno: textInputs,
+                status: status
             })
                 .then(function () {
                     console.log('Cronograma Atualizado');
@@ -217,7 +234,8 @@ function criarCronograma() {
                     acao: acao,
                     responsavel: responsavel,
                     imagemURL: "",
-                    linkExterno: ""
+                    linkExterno: "",
+                    status: status
                 })
                     .then(function (docRef) {
                         // Criar uma referência para o arquivo no Firebase Storage
@@ -242,7 +260,8 @@ function criarCronograma() {
                     acao: acao,
                     responsavel: responsavel,
                     imagemURL: "",
-                    linkExterno: ""
+                    linkExterno: "",
+                    status: status
                 })
             }
         }
@@ -255,6 +274,7 @@ function criarCronograma() {
     fileInput.value = "";
     textInput.value = "";
     selectedOption.value = "";
+    cronogramaSatus.checked = false;
 
     buscarCategoriasECronograma();
 }
@@ -347,10 +367,17 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
     // Converter a coleção de categorias em um array
     const categoriasArray = categoriasSnapshot
     const CategoriasAll = [];
+    const cronogramasRender = [];
     todasCategorias.forEach(function (categoriaDoc) {
         const categoriaData = categoriaDoc.data();
         categoriaData.id = categoriaDoc.id;
         CategoriasAll.push(categoriaData);
+    });
+
+    cronogramaSnapshot.forEach(function (categoriaDoc) {
+        const categoriaData = categoriaDoc.data();
+        categoriaData.id = categoriaDoc.id;
+        cronogramasRender.push(categoriaData);
     });
 
     // Ordenar o array de categorias pelo campo 'posicao' em ordem crescente
@@ -510,6 +537,23 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
                 cronogramaItem.appendChild(responsavelInput);
             }
 
+            if (document.title == "LITURGIA EDITAVEL") {
+                var statusitem = document.createElement('td');
+                statusitem.innerHTML = "<div class='form-check form-switch'><input class='form-check-input' type='checkbox' id='" + key + "'style='display: flex; justify-content: center; align-items: center;'></div>";
+                statusitem.onchange = function () {
+                    var novaCategoriaId = categoriaNome;
+                    var novoHorario = horario;
+                    var novaAcao = acao;
+                    var novoResponsavel = responsavel;
+                    var novaimagemURL = imagemURL;
+                    var novolinkExterno = linkExterno;
+                    var statusitems = document.getElementById(key).checked;
+
+                    changeStatusCronograma(key, novaCategoriaId, novoHorario, novaAcao, novoResponsavel, novaimagemURL, novolinkExterno, statusitems);
+                };
+                cronogramaItem.appendChild(statusitem);
+            }
+
             if (linkExterno) {
                 var imagemURLButtonTd = document.createElement('td');
                 var linkExternoButton = document.createElement('button');
@@ -575,27 +619,19 @@ function renderizarCategoriasECronograma(categoriasSnapshot, cronogramaSnapshot,
             }
             cronogramaBody.appendChild(cronogramaItem)
 
-            if (document.title != "LITURGIA EDITAVEL") {
-                // Selecionar todos os elementos de input na tela
-                const inputs = document.querySelectorAll('input');
-                const inputxs = document.querySelectorAll('textarea');
-
-                // Percorrer cada elemento de input e definir o atributo readonly
-                inputs.forEach(input => {
-                    input.readOnly = true;
-
-                });
-
-                // Percorrer cada elemento de input e definir o atributo readonly
-                inputxs.forEach(input => {
-                    input.readOnly = true;
-                });
-            }
         });
         cronogramaTable.appendChild(cronogramaBody);
         cronogramaList.appendChild(cronogramaTable);
-
     });
+
+    cronogramasRender.forEach(categoriaData => {
+        var categoriaID = categoriaData.id;
+        var status = categoriaData.status;
+        var item = document.getElementById(categoriaID)
+        if (item) {
+            item.checked = status;
+        }
+    })
 }
 
 function abrirLinkEmNovaGuia(link) {
@@ -632,7 +668,7 @@ function buscarCategoriasECronograma() {
 
             return Promise.all([
                 categorias, // Passa as categorias encontradas
-                cronogramaRef.get(),
+                (document.title == "LITURGIA EDITAVEL") ? cronogramaRef.get() : cronogramaRef.where("status","==",true).get(),
                 categoriasRef.get()
             ]);
         })
