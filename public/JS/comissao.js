@@ -19,7 +19,7 @@ var categoriasPesquisadas = [];
 var categoriasRef = db.collection('departamento');
 
 // Referência para a coleção de cronogramas
-var cronogramaRef = db.collection('lideres');
+var cronogramaRef = (document.title == "INDICAÇÃO") ? db.collection('sugestões') : db.collection('lideres');
 
 // Elementos do DOM categoria
 var categoriaIDALL = document.getElementById('catID');
@@ -134,7 +134,6 @@ function criarCronograma() {
 
 // Função para atualizar um cronograma
 function atualizarCronograma(key, categoriaId, horario, acao, responsavel) {
-
     const formSection = document.getElementById('cronograma');
     formSection.scrollIntoView({ behavior: 'smooth' });
     idCronInput.value = key;
@@ -291,12 +290,22 @@ function renderizarCategorias(categoriasSnapshot) {
             option.innerText = nome;
             categoriaSelect.appendChild(option);
         });
+    } else if (document.title == "INDICAÇÃO" && categoriaSelect) {
+        categoriaSelect.innerHTML = '';
+        categoriasArray.forEach(categoriaData => {
+            var key = categoriaData.id;
+            var nome = categoriaData.nome;
+
+            var option = document.createElement('option');
+            option.value = nome;
+            option.innerText = nome;
+            categoriaSelect.appendChild(option);
+        });
     }
 }
 
 // Função para renderizar as categorias e os cronogramas juntos
 function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
-
     // Converter a coleção de categorias em um array
     const cronogramaArray = cronogramaSnapshot.docs.map(doc => { const data = doc.data(); return { id: doc.id, ...data }; });
 
@@ -326,6 +335,17 @@ function renderizarCronograma(categoriaNome, cronogramaSnapshot) {
         var validaMes = true;
 
         var cronogramaItem = document.createElement('tr');
+
+        if (dataObjeto){
+            var acaoInput = document.createElement('td');
+            acaoInput.style = "width: 30%;";
+            acaoInput.innerHTML = dataObjeto;
+            acaoInput.style = "white-space: pre-wrap; word-break: break-all; font-family: 'Comfortaa', sans-serif;";
+            cronogramaItem.appendChild(acaoInput);
+        }else{
+            var acaoInput = document.createElement('td');
+            cronogramaItem.appendChild(acaoInput);
+        }
 
         if (acao) {
             var acaoInput = document.createElement('td');
@@ -419,14 +439,17 @@ function buscarCategorias() {
         .catch(function (error) {
             console.error('Erro ao obter dados do Firestore: ', error);
         });
-    buscarCronograma(categoriaReader);
+    if (document.title !== "INDICAÇÃO") {
+        buscarCronograma(categoriaReader);
+    }
 }
 
 // Função para buscar categorias e cronogramas no Firestore
 function buscarCronograma(categoria) {
     if (categoria) {
         // Limpar a lista de cronogramas existentes
-        cronogramaList.innerHTML = '';
+        cronogramaList ? cronogramaList.innerHTML = '' : "";
+
         Promise.all([
             cronogramaRef.where("categoria", "==", categoria).orderBy("horario", "asc").get()
         ])
@@ -453,7 +476,6 @@ function excluirCategoria(id) {
 
 function buscarCategoriaECronograma() {
     // Limpar a lista de cronogramas existentes
-    cronogramaList.innerHTML = '';
     Promise.all([
         categoriasRef.get()
     ])
@@ -477,11 +499,11 @@ function buscarCategoriaECronograma() {
 
 // Função para inicializar a página
 function inicializarPagina() {
-    if (document.title == "COMISSÃO EDITAVEL") {
-        // Registrar os eventos dos botões e formulários
-        document.getElementById('criarCategoriaBtn').addEventListener('click', criarCategoria);
-        document.getElementById('criarCronogramaBtn').addEventListener('click', criarCronograma);
-    }
+    var botao1 = document.getElementById('criarCronogramaBtn')
+    var botao2 = document.getElementById('criarCronogramaBtn')
+    // Registrar os eventos dos botões e formulários
+    botao1 ? botao1.addEventListener('click', criarCategoria) : "";
+    botao2 ? botao2.addEventListener('click', criarCronograma) : "";
     // Carregar categorias e cronogramas do Firestore
     buscarCategoriaECronograma();
 }

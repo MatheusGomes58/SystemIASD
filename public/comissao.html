@@ -14,58 +14,55 @@
 <body class="body text-center">
     <nav class="navbar bg-dark navbar-expand-lg navbar-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="./">
-                IASD Jd. Santa Monica
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNavDropdown" style="font-size: 18px;">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="./">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./programSave.html">Liturgia</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="./comissaoSave copy.html">Comissão</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Eventos
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-dark">
-                            <li><a class="dropdown-item" href="#">Action</a></li>
-                            <li><a class="dropdown-item" href="#">Another action</a></li>
-                            <li><a class="dropdown-item" href="#">Something else here</a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Fale Conosco</a>
-                    </li>
-                </ul>
-            </div>
+          <a class="navbar-brand" href="./">
+            IASD Jd. Santa Monica
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
+            aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNavDropdown" style="font-size: 18px;">
+            <ul class="navbar-nav ms-auto">
+              <li class="nav-item">
+                <a class="nav-link" aria-current="page" href="./">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="./programSave.html">Liturgia</a>
+              </li>
+              <li>
+                <a class="nav-link" href="./comissaoSave.html">Comissão</a>
+              </li>
+              <li>
+                <a class="nav-link" href="./comissaoForm.html">Indicações</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="./escalasSave.html">Escalas</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link disabled" href="#">Fale Conosco</a>
+              </li>
+            </ul>
+          </div>
         </div>
-    </nav>
+      </nav>
+    <mat class="header">
+      <img src="./IMG/WALLPAPERIMG.jpeg" class="header-image">
+      <h1 class="header-title">Comissão</h1>
+    </mat>
 
-
-    <h2 id="cat">Departamentos</h2>
     <input type="text" id="catID" hidden>
 
     <div id="categorias" class="row" style="margin-left: 5%; margin-right: 5%;">
         <div class="col-12">
             <div class="input-group">
-                <span class="input-group-text" style="background-color: #222222; color: white;">Categoria:</span>
+                <span class="input-group-text" style="background-color: #222222; color: white;">Departamento:</span>
                 <input type="text" id="categoriaInput" class="form-control"
                     style="background-color: #222222; color: white;">
             </div>
         </div>
         <div class="col-12">
             <div class="input-group">
-                <span class="input-group-text" style="background-color: #222222; color: white;">Sequência:</span>
+                <span class="input-group-text" style="background-color: #222222; color: white;">Ordem:</span>
                 <input type="number" id="categoriaOrder" class="form-control"
                     style="background-color: #222222; color: white;">
                 <button id="criarCategoriaBtn" class="btn btn-outline-secondary" style="color: white;">Inserir</button>
@@ -73,13 +70,13 @@
         </div>
     </div>
 
-    <h2 id="cronograma">Líderes</h2>
+    <h2 id="cronograma" style="margin-top: 2%;">Líderes</h2>
     <input type="text" id="idCron" hidden>
     <div class="row text-center">
         <div class="col-12">
             <div id="categorias" style="margin-left: 5%; margin-right: 5%;">
                 <div class="input-group">
-                    <span class="input-group-text" style="background-color: #222222; color: white;">Categoria:</span>
+                    <span class="input-group-text" style="background-color: #222222; color: white;">Departamento:</span>
                     <select id="categoriaSelect" class="form-control"
                         style="background-color: #222222; color: white;"></select>
                 </div>
@@ -97,7 +94,7 @@
         <div class="col-12">
             <div style="margin-left: 5%; margin-right: 5%;">
                 <div class="input-group">
-                    <span class="input-group-text" style="background-color: #222222; color: white;">Ação:</span>
+                    <span class="input-group-text" style="background-color: #222222; color: white;">Observação:</span>
                     <textarea id="acaoInput" class="form-control"
                         style="background-color: #222222; color: white;"></textarea>
                 </div>
@@ -106,7 +103,7 @@
         <div class="col-12">
             <div style="margin-left: 5%; margin-right: 5%;">
                 <div class="input-group">
-                    <span class="input-group-text" style="background-color: #222222; color: white;">Responsável:</span>
+                    <span class="input-group-text" style="background-color: #222222; color: white;">Membro:</span>
                     <input type="text" id="responsavelInput" class="form-control"
                         style="background-color: #222222; color: white;">
                 </div>
